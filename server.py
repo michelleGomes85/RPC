@@ -11,6 +11,9 @@ class Server:
         self.ip = ip
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # 	Reuso de porta no socket do Linux
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
         # Operações disponíveis
         self.operations = {
