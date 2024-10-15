@@ -32,6 +32,9 @@ class Client():
     def sum(self, value1, value2):
         """Solicita uma soma ao servidor"""
         return self.send_operation('sum', value1, value2)
+    
+    def sumList(self, values):
+        return self.send_operation('sum', *values)
 
     def sub(self, value1, value2):
         """Solicita uma subtração ao servidor"""

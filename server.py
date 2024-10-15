@@ -68,10 +68,8 @@ class Server:
             if operation not in self.operations or len(values) < 2:
                 return self.ERROR_MESSAGE
 
-            a, b = values
-
             # Tenta realizar a operação
-            result = self.operations[operation](a, b)
+            result = self.operations[operation](values)
             
             return str(result)
         
@@ -81,15 +79,19 @@ class Server:
             return self.ERROR_MESSAGE
 
     # Operações matemáticas
-    def sum(self, a, b):
-        return a + b
+    def sum(self, values):
+        sum_values = 0
+        for value in values:
+            sum_values += value
+            
+        return sum_values
 
-    def sub(self, a, b):
-        return a - b
+    def sub(self, values):
+        return values[0] - values[1]
 
-    def mul(self, a, b):
-        return a * b
+    def mul(self, values):
+        return values[0] * values[1]
 
-    def div(self, a, b):
-        return a / b
+    def div(self, values):
+        return values[0] / values[1]
 
