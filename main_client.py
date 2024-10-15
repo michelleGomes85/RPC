@@ -1,4 +1,5 @@
 # test_client.py
+import random
 from client import Client
 
 def test_operations():
@@ -16,7 +17,7 @@ def test_operations():
     print("Multiplicação (10 * 'a'):", client.mul(10, 'a'))  # Testando mandar string
     
     # Testando somar uma lista de números
-    print("Somando Lista: ", client.sumList([1,2,3]))
+    print("Somando Lista: ", client.sumList(list(range(3))))
 
     client.close()
 

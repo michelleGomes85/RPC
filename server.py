@@ -7,12 +7,9 @@ class Server:
     DIV_ZERO_ERROR = "Divisão por zero."
     
     def __init__(self, ip, port):
-        
         self.ip = ip
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        # 	Reuso de porta no socket do Linux
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
         # Operações disponíveis
@@ -24,12 +21,8 @@ class Server:
         }
 
     def start(self):
-        
-        """Inicia o servidor e aguarda conexões"""
-        
         self.sock.bind((self.ip, self.port))
         self.sock.listen(1)
-        
         print(f"Servidor escutando em {self.ip}:{self.port}")
         
         while True:
@@ -38,39 +31,49 @@ class Server:
             self.handle_client(connection)
 
     def handle_client(self, connection):
-        
-        """Gerencia as requisições do cliente"""
-        
         try:
             while True:
-                data = connection.recv(1024).decode('utf-8')
-                if not data:
-                    break
+                # Primeiro, lê o comprimento da mensagem
+                length_buffer = b''
+                while not length_buffer.endswith(b'\n'):
+                    part = connection.recv(1)
+                    if not part:
+                        break
+                    
+                    length_buffer += part
 
-                response = self.process_request(data)
+                message_length = length_buffer.decode('utf-8').strip()
+                if not message_length:
+                    break
+                
+                message_length = int(message_length)
+                
+                # Agora, lê a mensagem com o comprimento especificado
+                buffer = b''
+                while len(buffer) < message_length:
+                    part = connection.recv(1024)
+                    if not part:
+                        break
+                    buffer += part
+
+                # Processa a requisição e envia a resposta
+                response = self.process_request(buffer.decode('utf-8'))
                 connection.send(response.encode('utf-8'))
+
         finally:
             connection.close()
 
+
     def process_request(self, data):
-        
-        """Processa a requisição e retorna o resultado"""
-        
         try:
-            
-            # Decodifica o JSON recebido
-            
             request = json.loads(data)
             operation = request.get('operation')
             values = request.get('values')
 
-            # Verifica se a operação é valida
             if operation not in self.operations or len(values) < 2:
                 return self.ERROR_MESSAGE
 
-            # Tenta realizar a operação
             result = self.operations[operation](values)
-            
             return str(result)
         
         except ZeroDivisionError:
@@ -78,13 +81,8 @@ class Server:
         except Exception:
             return self.ERROR_MESSAGE
 
-    # Operações matemáticas
     def sum(self, values):
-        sum_values = 0
-        for value in values:
-            sum_values += value
-            
-        return sum_values
+        return sum(values)
 
     def sub(self, values):
         return values[0] - values[1]
@@ -94,4 +92,3 @@ class Server:
 
     def div(self, values):
         return values[0] / values[1]
-
