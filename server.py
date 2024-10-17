@@ -1,6 +1,6 @@
 import socket
 import json
-from constants import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, INVALID_OPERATION
+from constants import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, INVALID_OPERATION, MESSAGE_DELIMITER
 
 class Server:
     
@@ -32,7 +32,7 @@ class Server:
         try:
             while True:
                 length_buffer = b''
-                while not length_buffer.endswith(b'\n'):
+                while not length_buffer.endswith(MESSAGE_DELIMITER):
                     part = connection.recv(1)
                     if not part:
                         break

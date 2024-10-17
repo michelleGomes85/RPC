@@ -26,6 +26,9 @@ INVALID_JSON_FORMAT = "Formato de JSON inválido."
 # Tamanho do buffer de recepção
 BUFFER_SIZE = 1024
 
+# Delimitador de mensagem
+MESSAGE_DELIMITER = b'\n'
+
 # Estrutura de JSON para requisições
 REQUEST_KEYS = {
     'OPERATION': 'operation',
