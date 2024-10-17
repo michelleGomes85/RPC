@@ -1,10 +1,9 @@
-# test_client.py
-import random
 from client import Client
+from constants import SERVER_CONFIG
 
 def test_operations():
     
-    client = Client('127.0.0.1', 5000)
+    client = Client()
     client.connect()
 
     # Teste de operações
@@ -17,7 +16,7 @@ def test_operations():
     print("Multiplicação (10 * 'a'):", client.mul(10, 'a'))  # Testando mandar string
     
     # Testando somar uma lista de números
-    print("Somando Lista: ", client.sumList(list(range(3))))
+    print("Somando Lista: ", client.sumList(list(range(10000))))
 
     client.close()
 
