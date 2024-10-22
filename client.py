@@ -44,6 +44,9 @@ class Client:
 
     def div(self, value1, value2):
         return self.send_operation(OPERATIONS['DIV'], value1, value2)
+    
+    def wait_n_seconds(self, n):
+        return self.send_operation(OPERATIONS['WAIT'], n)
 
     def close(self):
         self.sock.close()

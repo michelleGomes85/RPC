@@ -11,7 +11,8 @@ OPERATIONS = {
     'SUM': 'sum',
     'SUB': 'sub',
     'MUL': 'mul',
-    'DIV': 'div'
+    'DIV': 'div',
+    'WAIT': 'wait'
 }
 
 # Codificação de mensagens

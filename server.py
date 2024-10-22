@@ -1,5 +1,6 @@
 import socket
 import json
+import time
 from constants import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, INVALID_OPERATION, MESSAGE_DELIMITER
 
 class Server:
@@ -15,7 +16,8 @@ class Server:
             OPERATIONS['SUM']: self.sum,
             OPERATIONS['SUB']: self.sub,
             OPERATIONS['MUL']: self.mul,
-            OPERATIONS['DIV']: self.div
+            OPERATIONS['DIV']: self.div,
+            OPERATIONS['WAIT']: self.wait_n_seconds
         }
 
     def start(self):
@@ -62,7 +64,7 @@ class Server:
             operation = request.get(REQUEST_KEYS['OPERATION'])
             values = request.get(REQUEST_KEYS['VALUES'])
 
-            if operation not in self.operations or len(values) < 2:
+            if operation not in self.operations:
                 return INVALID_OPERATION
 
             result = self.operations[operation](values)
@@ -84,3 +86,7 @@ class Server:
 
     def div(self, values):
         return values[0] / values[1]
+    
+    def wait_n_seconds(self, values):
+        time.sleep(values[0])
+        return values[0]
