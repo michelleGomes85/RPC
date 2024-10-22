@@ -24,6 +24,8 @@ DIV_ZERO_ERROR = "Divisão por zero."
 INVALID_OPERATION = "Operação inválida ou argumentos insuficientes."
 INVALID_JSON_FORMAT = "Formato de JSON inválido."
 
+THREAD_PROCESS = True
+
 # Tamanho do buffer de recepção
 BUFFER_SIZE = 1024
 

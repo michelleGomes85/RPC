@@ -1,7 +1,9 @@
 import socket
 import json
 import time
-from constants import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, INVALID_OPERATION, MESSAGE_DELIMITER
+import multiprocessing
+import threading
+from constants import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, INVALID_OPERATION, MESSAGE_DELIMITER, THREAD_PROCESS
 
 class Server:
     
@@ -21,6 +23,7 @@ class Server:
         }
 
     def start(self):
+        
         self.sock.bind((self.ip, self.port))
         self.sock.listen(1)
         print(f"Servidor escutando em {self.ip}:{self.port}")
@@ -28,9 +31,13 @@ class Server:
         while True:
             connection, address = self.sock.accept()
             print(f"Conexão estabelecida com {address}")
-            self.handle_client(connection)
+            
+            worker = threading.Thread if THREAD_PROCESS else multiprocessing.Process
+            client_handler = worker(target=self.handle_client, args=(connection,))
+            client_handler.start()  
 
     def handle_client(self, connection):
+        
         try:
             while True:
                 length_buffer = b''
