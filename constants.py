@@ -24,6 +24,7 @@ DIV_ZERO_ERROR = "Divisão por zero."
 INVALID_OPERATION = "Operação inválida ou argumentos insuficientes."
 INVALID_JSON_FORMAT = "Formato de JSON inválido."
 
+# Definir se servidor vai usar thread ou processo, para fazer o paralelismo
 THREAD_PROCESS = True
 
 # Tamanho do buffer de recepção
