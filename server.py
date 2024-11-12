@@ -2,12 +2,17 @@ import socket
 import json
 import time
 import multiprocessing
+import math
 import threading
-from constants import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, INVALID_OPERATION, MESSAGE_DELIMITER, THREAD_PROCESS
+import os
+
+from constants import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, INVALID_OPERATION, MESSAGE_DELIMITER, THREAD_PROCESS, ERROR_NUMBER_PROCESS
+from multiprocessing import Pool
 
 class Server:
     
     def __init__(self):
+
         self.ip = SERVER_CONFIG['IP']
         self.port = SERVER_CONFIG['PORT']
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -19,7 +24,9 @@ class Server:
             OPERATIONS['SUB']: self.sub,
             OPERATIONS['MUL']: self.mul,
             OPERATIONS['DIV']: self.div,
-            OPERATIONS['WAIT']: self.wait_n_seconds
+            OPERATIONS['WAIT']: self.wait_n_seconds,
+            OPERATIONS['CHECK_PRIMES']: self.check_primes,
+            OPERATIONS['CHECK_PRIMES_PARALLEL']: self.check_primes_parallel 
         }
 
     def start(self):
@@ -53,19 +60,30 @@ class Server:
                 
                 message_length = int(message_length)
                 buffer = b''
+
                 while len(buffer) < message_length:
                     part = connection.recv(BUFFER_SIZE)
                     if not part:
                         break
                     buffer += part
 
+                # Processa a mensagem recebida
                 response = self.process_request(buffer.decode(ENCODING))
-                connection.send(response.encode(ENCODING))
+
+                # Envia o comprimento da resposta seguido pela resposta em si
+                response_message = response.encode(ENCODING)
+                response_length = len(response_message)
+
+                # Envia o comprimento da resposta e a mensagem
+                connection.sendall(f'{response_length}\n'.encode(ENCODING))
+                connection.sendall(response_message)
 
         finally:
             connection.close()
 
+
     def process_request(self, data):
+
         try:
             request = json.loads(data)
             operation = request.get(REQUEST_KEYS['OPERATION'])
@@ -75,10 +93,15 @@ class Server:
                 return INVALID_OPERATION
 
             result = self.operations[operation](values)
+
             return str(result)
         
         except ZeroDivisionError:
             return DIV_ZERO_ERROR
+        
+        except ValueError:
+            return ERROR_NUMBER_PROCESS
+        
         except Exception:
             return ERROR_MESSAGE
 
@@ -97,3 +120,43 @@ class Server:
     def wait_n_seconds(self, values):
         time.sleep(values[0])
         return values[0]
+    
+    def is_prime(self, n):
+
+        if n <= 1:
+            return False
+        
+        if n == 2: 
+            return True
+        
+        if n % 2 == 0: 
+            return False
+        
+        for i in range(3, int(math.sqrt(n)) + 1, 2):
+            if n % i == 0:
+
+                return False
+            
+        return True
+
+    def check_primes(self, list_numbers):
+
+        """Verifica primalidade de números sem o uso de paralelismo"""
+
+        return [self.is_prime(n) for n in list_numbers]
+    
+    def check_primes_parallel(self, values):
+        
+        """Verifica primalidade de números em paralelo, dividindo entre múltiplos processos."""
+        
+        list_numbers, n_process = values 
+
+        if n_process > os.cpu_count():
+            raise ValueError()
+
+        pool = Pool(processes=n_process)
+        resp = pool.map(self.is_prime, list_numbers)
+        pool.close()
+        pool.join()
+
+        return resp

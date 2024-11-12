@@ -12,7 +12,9 @@ OPERATIONS = {
     'SUB': 'sub',
     'MUL': 'mul',
     'DIV': 'div',
-    'WAIT': 'wait'
+    'WAIT': 'wait',
+    'CHECK_PRIMES': 'check_primes',
+    'CHECK_PRIMES_PARALLEL': 'check_primes_parallel'
 }
 
 # Codificação de mensagens
@@ -23,7 +25,9 @@ ERROR_MESSAGE = "ERROR"
 DIV_ZERO_ERROR = "Divisão por zero."
 INVALID_OPERATION = "Operação inválida ou argumentos insuficientes."
 INVALID_JSON_FORMAT = "Formato de JSON inválido."
+ERROR_NUMBER_PROCESS = "Número de processos acima do esperado"
 
+# Definir se servidor vai usar thread ou processo, para fazer o paralelismo
 THREAD_PROCESS = True
 
 # Tamanho do buffer de recepção
