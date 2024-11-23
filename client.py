@@ -1,6 +1,7 @@
 import socket
 import json
-from constants import OPERATIONS, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, MESSAGE_DELIMITER
+from config import OPERATIONS, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, MESSAGE_DELIMITER
+from utils import MessageHandler
 
 class Client:
     
@@ -11,7 +12,6 @@ class Client:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
     def connect(self):
-
         self.sock.connect((self.ip, self.port))
         
     def send_operation(self, operation, *args):
@@ -22,44 +22,21 @@ class Client:
             REQUEST_KEYS['VALUES']: args
         }
         
-        message = json.dumps(request).encode(ENCODING)
-        message_length = len(message)
+        try:
         
-        self.sock.sendall(f'{message_length}\n'.encode(ENCODING))
-        self.sock.sendall(message)
+            if not MessageHandler.send_message(self.sock, json.dumps(request)):
+                return None
 
-        response = self.receive_message()
+            # Recebe a resposta do servidor
+            response = MessageHandler.receive_message(self.sock)
+            
+            if response is None:
+                return None
 
-        return response
+            return response
 
-    def receive_message(self):
-
-        """Lê a mensagem do servidor, assim como o servidor lê a requisição"""
-
-        length_buffer = b''
-        
-        while not length_buffer.endswith(MESSAGE_DELIMITER):
-            part = self.sock.recv(1)
-            if not part:
-                break
-
-            length_buffer += part
-
-        message_length = length_buffer.decode(ENCODING).strip()
-        if not message_length:
-            return None 
-        
-        message_length = int(message_length)
-        buffer = b''
-
-        while len(buffer) < message_length:
-            part = self.sock.recv(BUFFER_SIZE)
-            if not part:
-                break
-
-            buffer += part
-
-        return buffer.decode(ENCODING)
+        except (socket.error, json.JSONDecodeError) as e:
+            return None
 
     def sum(self, value1, value2):
         return self.send_operation(OPERATIONS['SUM'], value1, value2)

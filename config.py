@@ -27,6 +27,13 @@ INVALID_OPERATION = "Operação inválida ou argumentos insuficientes."
 INVALID_JSON_FORMAT = "Formato de JSON inválido."
 ERROR_NUMBER_PROCESS = "Número de processos acima do esperado"
 
+# Mensagens de Log
+LOG_SERVER_START = "Servidor escutando em {ip}:{port}"
+LOG_CONNECTION_ESTABLISHED = "\nConexão estabelecida com {address}"
+LOG_CONNECTION_CLOSED = "Conexão com o cliente {address} encerrada."
+LOG_CLIENT_ERROR = "Erro ao processar o cliente {address}: {error}"
+
+
 # Definir se servidor vai usar thread ou processo, para fazer o paralelismo
 THREAD_PROCESS = True
 

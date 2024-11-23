@@ -6,8 +6,9 @@ import math
 import threading
 import os
 
-from constants import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, INVALID_OPERATION, MESSAGE_DELIMITER, THREAD_PROCESS, ERROR_NUMBER_PROCESS
+from config import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, INVALID_OPERATION, THREAD_PROCESS, ERROR_NUMBER_PROCESS, LOG_CLIENT_ERROR, LOG_CONNECTION_CLOSED, LOG_CONNECTION_ESTABLISHED, LOG_SERVER_START
 from multiprocessing import Pool
+from utils import MessageHandler
 
 class Server:
     
@@ -33,11 +34,13 @@ class Server:
         
         self.sock.bind((self.ip, self.port))
         self.sock.listen(1)
-        print(f"Servidor escutando em {self.ip}:{self.port}")
+        
+        print(LOG_SERVER_START.format(ip=self.ip, port=self.port))
         
         while True:
-            connection, address = self.sock.accept()
-            print(f"Conexão estabelecida com {address}")
+            connection, self.address = self.sock.accept()
+            
+            print(LOG_CONNECTION_ESTABLISHED.format(address=self.address))
             
             worker = threading.Thread if THREAD_PROCESS else multiprocessing.Process
             client_handler = worker(target=self.handle_client, args=(connection,))
@@ -47,40 +50,21 @@ class Server:
         
         try:
             while True:
-                length_buffer = b''
-                while not length_buffer.endswith(MESSAGE_DELIMITER):
-                    part = connection.recv(1)
-                    if not part:
-                        break
-                    length_buffer += part
+                buffer = MessageHandler.receive_message(connection)
 
-                message_length = length_buffer.decode(ENCODING).strip()
-                if not message_length:
+                if buffer is None: 
                     break
                 
-                message_length = int(message_length)
-                buffer = b''
+                response = self.process_request(buffer)
+                
+                if not MessageHandler.send_message(connection, response):
+                    break
 
-                while len(buffer) < message_length:
-                    part = connection.recv(BUFFER_SIZE)
-                    if not part:
-                        break
-                    buffer += part
-
-                # Processa a mensagem recebida
-                response = self.process_request(buffer.decode(ENCODING))
-
-                # Envia o comprimento da resposta seguido pela resposta em si
-                response_message = response.encode(ENCODING)
-                response_length = len(response_message)
-
-                # Envia o comprimento da resposta e a mensagem
-                connection.sendall(f'{response_length}\n'.encode(ENCODING))
-                connection.sendall(response_message)
-
+        except Exception as e:
+            print(LOG_CLIENT_ERROR.format(address=self.address, error=e))
         finally:
             connection.close()
-
+            print(LOG_CONNECTION_CLOSED.format(address=self.address))
 
     def process_request(self, data):
 

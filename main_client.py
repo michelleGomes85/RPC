@@ -8,7 +8,7 @@ def test_performance():
     client.connect()
     
     # Lista de tamanhos para teste
-    sizes = [1_000, 10_000, 50_000, 100_000, 500_000, 1_000_000]
+    sizes = [1_000, 10_000, 50_000, 100_000]
     
     results = {"size": [], "sequential": [], "parallel": []}
     
@@ -57,6 +57,30 @@ def plot_results(results):
     plt.tight_layout()
     plt.show()
 
+# Função para testar outras operações (sem gerar gráfico)
+def test_operations():
+    
+    client = Client()  
+    client.connect()
+    
+    print("Soma (10 + 20):", client.sum(10, 20)) 
+    print("Subtração (15 - 10):", client.sub(15, 10))
+    print("Subtração (15 - 'b'):", client.sub(15, 'b')) 
+    print("Multiplicação (5 * 5):", client.mul(5, 5))
+    print("Divisão (10 / 2):", client.div(10, 2))
+    print("Divisão (10 / 0):", client.div(10, 0))  
+    print("Multiplicação (10 * 'a'):", client.mul(10, 'a')) 
+    
+    # Testando somar uma lista de números
+    print("Somando Lista de 10.000 números:", client.sumList(list(range(10_000))))
+
+    print("Aguardar 1 segundos:", client.wait_n_seconds(1))
+    
+    client.close()
+
 if __name__ == "__main__":
     results = test_performance()
     plot_results(results)
+
+    # Testando as operações matemáticas
+    test_operations()
