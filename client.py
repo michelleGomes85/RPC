@@ -1,6 +1,9 @@
 import socket
 import json
-from config import OPERATIONS, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, MESSAGE_DELIMITER
+import datetime
+from collections import deque
+
+from config import OPERATIONS, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, MESSAGE_DELIMITER, N_CACHE_MEMORY
 from utils import MessageHandler
 
 class Client:
@@ -10,6 +13,9 @@ class Client:
         self.ip = SERVER_CONFIG['IP']
         self.port = SERVER_CONFIG['PORT']
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.cacheSum = {}
+        self.cacheDiv = {}
+        self.queueDiv = deque()
         
     def connect(self):
         self.sock.connect((self.ip, self.port))
@@ -23,7 +29,6 @@ class Client:
         }
         
         try:
-        
             if not MessageHandler.send_message(self.sock, json.dumps(request)):
                 return None
 
@@ -38,8 +43,16 @@ class Client:
         except (socket.error, json.JSONDecodeError) as e:
             return None
 
-    def sum(self, value1, value2):
-        return self.send_operation(OPERATIONS['SUM'], value1, value2)
+    def sum(self, value1, value2):                                             
+        
+        key = str(value1) + '+' + str(value2)
+       
+        if key in self.cacheSum:
+            return self.cacheSum[key]
+        else:
+            self.cacheSum[key] = self.send_operation(OPERATIONS['SUM'], value1, value2)
+
+        return self.cacheSum[key]
     
     def sumList(self, values):
         return self.send_operation(OPERATIONS['SUM'], *values)
@@ -51,7 +64,21 @@ class Client:
         return self.send_operation(OPERATIONS['MUL'], value1, value2)
 
     def div(self, value1, value2):
-        return self.send_operation(OPERATIONS['DIV'], value1, value2)
+
+        key = str(value1) + '/' + str(value2)
+       
+        if key in self.cacheDiv:
+            return self.cacheDiv[key]
+        else:
+            if len(self.cacheDiv) == N_CACHE_MEMORY:
+                key_delete = self.queueDiv.popleft()
+                del self.cacheDiv[key_delete]
+
+            self.queueDiv.append(key)
+            self.cacheDiv[key] = self.send_operation(OPERATIONS['DIV'], value1, value2)
+
+        print(self.cacheDiv)
+        return self.cacheDiv[key]
     
     def wait_n_seconds(self, n):
         return self.send_operation(OPERATIONS['WAIT'], n)

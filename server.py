@@ -18,6 +18,7 @@ class Server:
         self.port = SERVER_CONFIG['PORT']
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.cacheMul = {}
         
         # Operações disponíveis
         self.operations = {
@@ -90,13 +91,22 @@ class Server:
             return ERROR_MESSAGE
 
     def sum(self, values):
+        
         return sum(values)
 
     def sub(self, values):
         return values[0] - values[1]
 
     def mul(self, values):
-        return values[0] * values[1]
+
+        key = str(values[0]) + '*' + str(values[1])
+       
+        if key in self.cacheMul:
+            return self.cacheMul[key]
+        else:
+            self.cacheMul[key] = values[0] * values[1]
+
+        return self.cacheMul[key]
 
     def div(self, values):
         return values[0] / values[1]

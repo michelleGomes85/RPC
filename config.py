@@ -48,3 +48,9 @@ REQUEST_KEYS = {
     'OPERATION': 'operation',
     'VALUES': 'values'
 }
+
+# Números de registros máximo do cache em memória
+N_CACHE_MEMORY = 2
+
+# Números de registros máximo do cache em disco
+N_CACHE_DISK = 2
