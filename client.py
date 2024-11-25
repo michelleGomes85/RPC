@@ -1,10 +1,9 @@
 import socket
 import json
-import datetime
-from collections import deque
 
 from config import OPERATIONS, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, MESSAGE_DELIMITER, N_CACHE_MEMORY
 from utils import MessageHandler
+from cache_manager import CacheManager
 
 class Client:
     
@@ -13,9 +12,10 @@ class Client:
         self.ip = SERVER_CONFIG['IP']
         self.port = SERVER_CONFIG['PORT']
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.cacheSum = {}
-        self.cacheDiv = {}
-        self.queueDiv = deque()
+        
+        
+        self.cache_sum = CacheManager() # Sem limite
+        self.cache_div = CacheManager(max_size=N_CACHE_MEMORY)  # Com limite
         
     def connect(self):
         self.sock.connect((self.ip, self.port))
@@ -23,6 +23,7 @@ class Client:
     def send_operation(self, operation, *args):
         
         """Envia uma operação e seus argumentos ao servidor via JSON"""
+        
         request = {
             REQUEST_KEYS['OPERATION']: operation,
             REQUEST_KEYS['VALUES']: args
@@ -32,7 +33,6 @@ class Client:
             if not MessageHandler.send_message(self.sock, json.dumps(request)):
                 return None
 
-            # Recebe a resposta do servidor
             response = MessageHandler.receive_message(self.sock)
             
             if response is None:
@@ -45,14 +45,16 @@ class Client:
 
     def sum(self, value1, value2):                                             
         
-        key = str(value1) + '+' + str(value2)
+        key = f"{min(value1, value2)}+{max(value1, value2)}"
+        cached_result = self.cache_sum.get(key)
+        
+        if cached_result is not None:
+            return cached_result
        
-        if key in self.cacheSum:
-            return self.cacheSum[key]
-        else:
-            self.cacheSum[key] = self.send_operation(OPERATIONS['SUM'], value1, value2)
-
-        return self.cacheSum[key]
+        result = self.send_operation(OPERATIONS['SUM'], value1, value2)
+        self.cache_sum.set(key, result)
+        
+        return result
     
     def sumList(self, values):
         return self.send_operation(OPERATIONS['SUM'], *values)
@@ -62,24 +64,21 @@ class Client:
 
     def mul(self, value1, value2):
         return self.send_operation(OPERATIONS['MUL'], value1, value2)
-
-    def div(self, value1, value2):
-
-        key = str(value1) + '/' + str(value2)
-       
-        if key in self.cacheDiv:
-            return self.cacheDiv[key]
-        else:
-            if len(self.cacheDiv) == N_CACHE_MEMORY:
-                key_delete = self.queueDiv.popleft()
-                del self.cacheDiv[key_delete]
-
-            self.queueDiv.append(key)
-            self.cacheDiv[key] = self.send_operation(OPERATIONS['DIV'], value1, value2)
-
-        print(self.cacheDiv)
-        return self.cacheDiv[key]
     
+    def div(self, value1, value2):
+        
+        key = f"{value1}/{value2}"
+        cached_result = self.cache_div.get(key)
+        
+        if cached_result is not None:
+            return cached_result
+        
+        result = self.send_operation(OPERATIONS['DIV'], value1, value2)
+        
+        self.cache_div.set(key, result)
+        
+        return result
+
     def wait_n_seconds(self, n):
         return self.send_operation(OPERATIONS['WAIT'], n)
 

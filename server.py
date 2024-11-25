@@ -5,10 +5,13 @@ import multiprocessing
 import math
 import threading
 import os
+import signal
 
-from config import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, INVALID_OPERATION, THREAD_PROCESS, ERROR_NUMBER_PROCESS, LOG_CLIENT_ERROR, LOG_CONNECTION_CLOSED, LOG_CONNECTION_ESTABLISHED, LOG_SERVER_START
 from multiprocessing import Pool
+from config import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, INVALID_OPERATION, THREAD_PROCESS, ERROR_NUMBER_PROCESS, LOG_CLIENT_ERROR, LOG_CONNECTION_CLOSED, LOG_CONNECTION_ESTABLISHED, LOG_SERVER_START
+
 from utils import MessageHandler
+from cache_manager import CacheManager
 
 class Server:
     
@@ -18,7 +21,9 @@ class Server:
         self.port = SERVER_CONFIG['PORT']
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.cacheMul = {}
+        
+        self.cache_mul = CacheManager() 
+        self.running = True
         
         # Operações disponíveis
         self.operations = {
@@ -33,19 +38,34 @@ class Server:
 
     def start(self):
         
+        signal.signal(signal.SIGINT, self.handle_sigint)
+        
         self.sock.bind((self.ip, self.port))
         self.sock.listen(1)
         
         print(LOG_SERVER_START.format(ip=self.ip, port=self.port))
         
-        while True:
-            connection, self.address = self.sock.accept()
+        try:
+            while self.running:
+                self.sock.settimeout(1)
+                try:
+                    connection, self.address = self.sock.accept()
+                except socket.timeout:
+                    continue  
+                
+                print(LOG_CONNECTION_ESTABLISHED.format(address=self.address))
+                worker = threading.Thread if THREAD_PROCESS else multiprocessing.Process
+                client_handler = worker(target=self.handle_client, args=(connection,))
+                client_handler.start()
+        finally:
+            self.sock.close() 
             
-            print(LOG_CONNECTION_ESTABLISHED.format(address=self.address))
-            
-            worker = threading.Thread if THREAD_PROCESS else multiprocessing.Process
-            client_handler = worker(target=self.handle_client, args=(connection,))
-            client_handler.start()  
+    def handle_sigint(self, signum, frame):
+        
+        """Manipula o sinal SIGINT (Ctrl + C) para encerrar o servidor."""
+        
+        print("\nServidor encerrado.")
+        self.running = False
 
     def handle_client(self, connection):
         
@@ -91,22 +111,23 @@ class Server:
             return ERROR_MESSAGE
 
     def sum(self, values):
-        
         return sum(values)
 
     def sub(self, values):
         return values[0] - values[1]
-
-    def mul(self, values):
-
-        key = str(values[0]) + '*' + str(values[1])
+    
+    def mul(self, values):                                             
+        
+        key = f"{min(values[0], values[1])}*{max(values[0], values[1])}"
+        cached_result = self.cache_mul.get(key)
+        
+        if cached_result is not None:
+            return cached_result
        
-        if key in self.cacheMul:
-            return self.cacheMul[key]
-        else:
-            self.cacheMul[key] = values[0] * values[1]
-
-        return self.cacheMul[key]
+        result = values[0] * values[1]
+        self.cache_mul.set(key, result)
+        
+        return result
 
     def div(self, values):
         return values[0] / values[1]
@@ -128,7 +149,6 @@ class Server:
         
         for i in range(3, int(math.sqrt(n)) + 1, 2):
             if n % i == 0:
-
                 return False
             
         return True
