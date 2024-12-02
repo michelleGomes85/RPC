@@ -1,6 +1,5 @@
-import json
 import socket
-from config import ENCODING, BUFFER_SIZE, MESSAGE_DELIMITER
+from config.config import ENCODING, BUFFER_SIZE, MESSAGE_DELIMITER
 
 class MessageHandler:
 

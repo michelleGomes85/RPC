@@ -1,9 +1,9 @@
 import socket
 import json
 
-from config import OPERATIONS, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, MESSAGE_DELIMITER, N_CACHE_MEMORY
-from utils import MessageHandler
-from cache_manager import CacheManager
+from config.config import OPERATIONS, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, MESSAGE_DELIMITER, N_CACHE_MEMORY
+from utils.message_handler import MessageHandler
+from cache.cache_manager import CacheManager
 
 class Client:
     

@@ -53,4 +53,7 @@ REQUEST_KEYS = {
 N_CACHE_MEMORY = 2
 
 # Números de registros máximo do cache em disco
-N_CACHE_DISK = 2
+N_CACHE_DISK = 3
+
+#Nome do arquivo de cache em disco
+NAME_CACHE_DISK = "cache/prime_cache.json"

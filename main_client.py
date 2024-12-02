@@ -1,6 +1,6 @@
 import time
 import matplotlib.pyplot as plt
-from client import Client
+from rpc.client import Client
 
 def test_performance():
     
@@ -67,9 +67,9 @@ def test_operations():
     # print("Soma (10 + 20):", client.sum(5, 20)) 
     # print("Soma (10 + 20):", client.sum(11, 20)) 
 
-    print("Multiplicação (11 + 20):", client.mul(11, 20)) 
-    print("Multiplicação (5 + 20):", client.mul(20, 11)) 
-    print("Multiplicação (11 + 20):", client.mul(11, 20)) 
+    # print("Multiplicação (11 + 20):", client.mul(11, 20)) 
+    # print("Multiplicação (5 + 20):", client.mul(20, 11)) 
+    # print("Multiplicação (11 + 20):", client.mul(11, 20)) 
 
     # print("\n-- Divisão (20 / 10):", client.div(20, 10)) 
     # print("\n-- Divisão (20 / 5):", client.div(20, 5)) 
@@ -93,6 +93,9 @@ def test_operations():
     # print("Somando Lista de 10.000 números:", client.sumList(list(range(10_000))))
 
     # print("Aguardar 1 segundos:", client.wait_n_seconds(1))
+    
+    numbers = list(range(1, 5))
+    print(client.check_primes(numbers))
     
     client.close()
 

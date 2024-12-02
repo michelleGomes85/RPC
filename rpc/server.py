@@ -2,16 +2,18 @@ import socket
 import json
 import time
 import multiprocessing
-import math
 import threading
 import os
 import signal
 
 from multiprocessing import Pool
-from config import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, INVALID_OPERATION, THREAD_PROCESS, ERROR_NUMBER_PROCESS, LOG_CLIENT_ERROR, LOG_CONNECTION_CLOSED, LOG_CONNECTION_ESTABLISHED, LOG_SERVER_START
 
-from utils import MessageHandler
-from cache_manager import CacheManager
+from config.config import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, REQUEST_KEYS, INVALID_OPERATION, THREAD_PROCESS, ERROR_NUMBER_PROCESS, LOG_CLIENT_ERROR, LOG_CONNECTION_CLOSED, LOG_CONNECTION_ESTABLISHED, LOG_SERVER_START
+
+from utils.message_handler import MessageHandler
+from utils.prime_check import PrimeChecker
+from cache.cache_manager import CacheManager
+from cache.disk_cache_manager import DiskCacheManager
 
 class Server:
     
@@ -23,6 +25,8 @@ class Server:
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
         self.cache_mul = CacheManager() 
+        self.cache_manager = DiskCacheManager()
+        
         self.running = True
         
         # Operações disponíveis
@@ -135,31 +139,18 @@ class Server:
     def wait_n_seconds(self, values):
         time.sleep(values[0])
         return values[0]
-    
-    def is_prime(self, n):
-
-        if n <= 1:
-            return False
-        
-        if n == 2: 
-            return True
-        
-        if n % 2 == 0: 
-            return False
-        
-        for i in range(3, int(math.sqrt(n)) + 1, 2):
-            if n % i == 0:
-                return False
-            
-        return True
 
     def check_primes(self, list_numbers):
+        
+        prime_checker = PrimeChecker(self.cache_manager)
 
         """Verifica primalidade de números sem o uso de paralelismo"""
 
-        return [self.is_prime(n) for n in list_numbers]
+        return [prime_checker.is_prime(n) for n in list_numbers]
     
     def check_primes_parallel(self, values):
+        
+        prime_checker = PrimeChecker(self.cache_manager)
         
         """Verifica primalidade de números em paralelo, dividindo entre múltiplos processos."""
         
