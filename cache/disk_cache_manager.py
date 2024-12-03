@@ -93,6 +93,4 @@ class DiskCacheManager:
         # Obtendo o tamanho em bytes
         size_in_cache = len(json_string.encode(ENCODING))
 
-        print(size_in_cache, len(cache))
-
         return size_in_cache
