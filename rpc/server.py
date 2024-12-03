@@ -160,7 +160,7 @@ class Server:
             raise ValueError()
 
         pool = Pool(processes=n_process)
-        resp = pool.map(self.is_prime, list_numbers)
+        resp = pool.map(prime_checker.is_prime, list_numbers)
         pool.close()
         pool.join()
 

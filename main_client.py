@@ -94,7 +94,7 @@ def test_operations():
 
     # print("Aguardar 1 segundos:", client.wait_n_seconds(1))
     
-    numbers = list(range(1, 4))
+    numbers = list(range(1, 10))
     print(client.check_primes(numbers))
     
     client.close()
