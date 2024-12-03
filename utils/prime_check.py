@@ -14,6 +14,7 @@ class PrimeChecker:
 
     def is_prime(self, n):
         
+        
         """
         Verifica se um número é primo, usando o cache para acelerar o processo.
 
