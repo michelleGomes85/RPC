@@ -61,13 +61,12 @@ def plot_results(results):
 def test_operations():
     
     client = Client()  
-    client.connect()
     
-    # print("Soma (10 + 20):", client.sum(11, 20)) 
+    print("Soma (10 + 20):", client.sum(11, 20)) 
     # print("Soma (10 + 20):", client.sum(5, 20)) 
     # print("Soma (10 + 20):", client.sum(11, 20)) 
 
-    # print("Multiplicação (11 + 20):", client.mul(11, 20)) 
+    print("Multiplicação (11 + 20):", client.mul(11, 20)) 
     # print("Multiplicação (5 + 20):", client.mul(20, 11)) 
     # print("Multiplicação (11 + 20):", client.mul(11, 20)) 
 

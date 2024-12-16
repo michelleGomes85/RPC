@@ -17,10 +17,10 @@ from cache.disk_cache_manager import DiskCacheManager
 
 class Server:
     
-    def __init__(self):
+    def __init__(self, ip = SERVER_CONFIG['IP'], port = SERVER_CONFIG['PORT']):
 
-        self.ip = SERVER_CONFIG['IP']
-        self.port = SERVER_CONFIG['PORT']
+        self.ip = ip
+        self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
