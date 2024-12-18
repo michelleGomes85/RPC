@@ -2,7 +2,7 @@ import os
 import json
 from collections import OrderedDict
 
-from config.config import N_CACHE_DISK, NAME_CACHE_DISK, ENCODING
+from config.constants import N_CACHE_DISK, NAME_CACHE_DISK, ENCODING
 
 class DiskCacheManager:
     

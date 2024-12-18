@@ -1,5 +1,5 @@
 import socket
-from config.config import ENCODING, BUFFER_SIZE, MESSAGE_DELIMITER
+from config.constants import ENCODING, BUFFER_SIZE, MESSAGE_DELIMITER
 
 class MessageHandler:
 

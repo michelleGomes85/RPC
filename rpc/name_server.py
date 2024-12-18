@@ -1,6 +1,9 @@
 import socket
 import json
-from config.config import NAME_SERVER, BUFFER_SIZE, ENCODING, SERVER_MAP
+import signal
+
+from config.config_server_name import SERVER_MAP, NAME_SERVER, LOG_SERVER_NAME_CLOSED, LOG_SERVER_NAME_START, KEY_OPERATION, ERROR_KEY_OPERATION_MISSING, LOG_REQUEST_RECEIVED, ERROR_UNKNOWN_OPERATION, ERROR, LOG_OPERATION_NOT_FOUND, ERROR_FORMAT_WRONG, ERROR_INTERNAL
+from config.constants import ENCODING, BUFFER_SIZE
 
 class NameServer:
     
@@ -15,22 +18,35 @@ class NameServer:
         self.server_map = SERVER_MAP
         
         self.udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        
+        self.running = True
 
     def start(self):
+        
+        signal.signal(signal.SIGINT, self.handle_sigint)
         
         """Inicia o servidor de nomes para gerenciar endereços dos servidores de operação."""
         
         self.udp_sock.bind((self.ip, self.port))
         
-        print(f"Servidor de nomes rodando em {self.ip}:{self.port}")
+        print(LOG_SERVER_NAME_START.format(ip=self.ip, port=self.port))
 
         try:
-            while True:
-                self.handle_request()
-        except KeyboardInterrupt:
-            print("\nEncerrando o servidor de nomes...")
+            while self.running:
+                self.udp_sock.settimeout(1)
+                try:
+                    self.handle_request()
+                except socket.timeout:
+                    continue
         finally:
             self.udp_sock.close()
+        
+    def handle_sigint(self, signum, frame):
+        
+        """Manipula o sinal SIGINT (Ctrl + C) para encerrar o servidor."""
+        
+        print(LOG_SERVER_NAME_CLOSED)
+        self.running = False
 
     def handle_request(self):
         
@@ -40,26 +56,27 @@ class NameServer:
             data, addr = self.udp_sock.recvfrom(self.buffer_size)
             request = json.loads(data.decode(self.encoding))
 
-            if 'operation' not in request:
-                self.send_error(addr, 'Chave "operation" ausente na solicitação.')
+            if KEY_OPERATION not in request:
+                self.send_error(addr, ERROR_KEY_OPERATION_MISSING)
                 return
 
-            operation = request['operation']
-            print(f"Solicitação recebida de {addr}: operação = {operation}")
+            operation = request[KEY_OPERATION]
+            print(LOG_REQUEST_RECEIVED.format(addr = addr, operation = operation))
 
             response = self.server_map.get(operation, {})
 
             if not response:
-                response = {'error': f"Operação '{operation}' não encontrada."}
-                print(f"Operação desconhecida solicitada: {operation}")
+                response = {ERROR: LOG_OPERATION_NOT_FOUND}
+                print(ERROR_UNKNOWN_OPERATION)
 
             self.send_response(addr, response)
 
+        except socket.timeout:
+            pass
         except json.JSONDecodeError:
-            self.send_error(addr, 'Solicitação inválida. Esperado formato JSON.')
+            self.send_error(addr, ERROR_FORMAT_WRONG)
         except Exception as e:
-            print(f"Erro inesperado: {e}")
-            self.send_error(addr, 'Erro interno no servidor de nomes.')
+            self.send_error(addr, ERROR_INTERNAL)
 
     def send_response(self, addr, response):
         
@@ -71,5 +88,5 @@ class NameServer:
         
         """Envia uma mensagem de erro para o cliente."""
         
-        error_message = {'error': message}
+        error_message = {ERROR: message}
         self.udp_sock.sendto(json.dumps(error_message).encode(self.encoding), addr)

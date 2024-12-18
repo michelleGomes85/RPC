@@ -2,7 +2,9 @@ import socket
 import json
 import random
 
-from config.config import OPERATIONS, SERVER_CONFIG, ENCODING, BUFFER_SIZE, REQUEST_KEYS, MESSAGE_DELIMITER, N_CACHE_MEMORY, NAME_SERVER
+from config.constants import ENCODING, BUFFER_SIZE, N_CACHE_MEMORY
+from config.config_server import OPERATIONS, REQUEST_KEYS
+from config.config_server_name import NAME_SERVER
 from utils.message_handler import MessageHandler
 from cache.cache_manager import CacheManager
 
@@ -136,9 +138,7 @@ class Client:
         return self.execute_operation(OPERATIONS['CHECK_PRIMES_PARALLEL'], list_numbers, n_process)
     
     def close(self):
-        
         """Fecha o socket do cliente."""
-        
         if self.sock:
             self.sock.close()
             self.sock = None

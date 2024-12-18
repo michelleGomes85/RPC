@@ -8,7 +8,7 @@ import signal
 
 from multiprocessing import Pool
 
-from config.config import OPERATIONS, ERROR_MESSAGE, DIV_ZERO_ERROR, SERVER_CONFIG, REQUEST_KEYS, INVALID_OPERATION, THREAD_PROCESS, ERROR_NUMBER_PROCESS, LOG_CLIENT_ERROR, LOG_CONNECTION_CLOSED, LOG_CONNECTION_ESTABLISHED, LOG_SERVER_START
+from config.config_server import OPERATIONS, SERVER_CONFIG, REQUEST_KEYS, THREAD_PROCESS, ERROR_MESSAGE, DIV_ZERO_ERROR, INVALID_OPERATION, ERROR_NUMBER_PROCESS, LOG_SERVER_START, LOG_CONNECTION_ESTABLISHED, LOG_CONNECTION_CLOSED, LOG_CLIENT_ERROR, LOG_SERVER_CLOSED
 
 from utils.message_handler import MessageHandler
 from utils.prime_check import PrimeChecker
@@ -58,6 +58,7 @@ class Server:
                     continue  
                 
                 print(LOG_CONNECTION_ESTABLISHED.format(address=self.address))
+                
                 worker = threading.Thread if THREAD_PROCESS else multiprocessing.Process
                 client_handler = worker(target=self.handle_client, args=(connection,))
                 client_handler.start()
@@ -68,7 +69,7 @@ class Server:
         
         """Manipula o sinal SIGINT (Ctrl + C) para encerrar o servidor."""
         
-        print("\nServidor encerrado.")
+        print(LOG_SERVER_CLOSED)
         self.running = False
 
     def handle_client(self, connection):
