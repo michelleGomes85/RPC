@@ -14,7 +14,8 @@ OPERATIONS = {
     'DIV': 'DIV',
     'WAIT': 'WAIT',
     'CHECK_PRIMES': 'CHECK_PRIMES',
-    'CHECK_PRIMES_PARALLEL': 'CHECK_PRIMES_PARALLEL'
+    'CHECK_PRIMES_PARALLEL': 'CHECK_PRIMES_PARALLEL',
+    'VALIDA_CPF': 'VALIDA_CPF'
 }
 
 # Definir se servidor vai usar thread ou processo, para fazer o paralelismo

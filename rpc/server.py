@@ -15,10 +15,11 @@ from utils.prime_check import PrimeChecker
 from cache.cache_manager import CacheManager
 from cache.disk_cache_manager import DiskCacheManager
 from cache.decorators import cached
+from log.logger import Logger
 
 class Server:
     
-    def __init__(self, ip = SERVER_CONFIG['IP'], port = SERVER_CONFIG['PORT']):
+    def __init__(self, ip=SERVER_CONFIG['IP'], port=SERVER_CONFIG['PORT'], log_file="server_log.txt"):
 
         self.ip = ip
         self.port = port
@@ -26,6 +27,8 @@ class Server:
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
         self.running = True
+
+        self.logger = Logger(log_file)
         
         # Operações disponíveis
         self.operations = {
@@ -35,7 +38,8 @@ class Server:
             OPERATIONS['DIV']: self.div,
             OPERATIONS['WAIT']: self.wait_n_seconds,
             OPERATIONS['CHECK_PRIMES']: self.check_primes,
-            OPERATIONS['CHECK_PRIMES_PARALLEL']: self.check_primes_parallel 
+            OPERATIONS['CHECK_PRIMES_PARALLEL']: self.check_primes_parallel,
+            OPERATIONS['VALIDA_CPF']: self.valida_CPF
         }
 
     def start(self):
@@ -74,6 +78,7 @@ class Server:
         
         try:
             while True:
+                start_time = time.perf_counter()
                 buffer = MessageHandler.receive_message(connection)
 
                 if buffer is None: 
@@ -84,11 +89,24 @@ class Server:
                 if not MessageHandler.send_message(connection, response):
                     break
 
+                end_time = time.perf_counter()
+                response_time = end_time - start_time
+
+                self.logger.log(self.address[0], self.get_operation_name(buffer), response_time)
+
         except Exception as e:
             print(LOG_CLIENT_ERROR.format(address=self.address, error=e))
         finally:
             connection.close()
             print(LOG_CONNECTION_CLOSED.format(address=self.address))
+
+    def get_operation_name(self, data):
+        try:
+            request = json.loads(data)
+            operation = request.get(REQUEST_KEYS['OPERATION'])
+            return operation
+        except:
+            return "UNKNOWN"
 
     def process_request(self, data):
 
@@ -119,7 +137,7 @@ class Server:
     def sub(self, values):
         return values[0] - values[1]
 
-    @cached(cache_manager=DiskCacheManager(cache_file="cache/files/cache_mult.json", cache_limit=3))
+    @cached(cache_manager=CacheManager())
     def mul(self, values):                                             
         return values[0] * values[1]
 
@@ -155,3 +173,42 @@ class Server:
         pool.join()
 
         return resp
+    
+    def valida_CPF(self, cpf):
+
+        cpf = cpf[0]
+
+        numbers = '0123456789'
+
+        cpf = ''.join([x for x in cpf if x in numbers])
+    
+        # Verifica se o CPF tem 11 dígitos
+        if len(cpf) != 11:
+            return False
+        
+        # Verifica se todos os dígitos são iguais (caso contrário, o CPF é inválido)
+        if cpf == cpf[0] * 11:
+            return False
+        
+        # Calcula o primeiro dígito verificador
+        soma = 0
+        for i in range(9):
+            soma += int(cpf[i]) * (10 - i)
+
+        resto = soma % 11
+
+        digito1 = 0 if resto < 2 else 11 - resto
+        
+        # Calcula o segundo dígito verificador
+        soma = 0
+        for i in range(10):
+            soma += int(cpf[i]) * (11 - i)
+
+        resto = soma % 11
+        digito2 = 0 if resto < 2 else 11 - resto
+        
+        # Verifica se os dígitos calculados são iguais aos dígitos informados
+        if int(cpf[9]) == digito1 and int(cpf[10]) == digito2:
+            return True
+        
+        return False

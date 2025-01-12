@@ -95,8 +95,10 @@ def test_operations():
 
     # print("Aguardar 1 segundos:", client.wait_n_seconds(1))
     
-        numbers = list(range(1, 10))
-        print(client.check_primes(numbers))
+        # numbers = list(range(1, 10))
+        # print(client.check_primes(numbers))
+
+        print(client.valida_CPF("371.587.380-94"))
 
         client.close()
     except Exception as e:

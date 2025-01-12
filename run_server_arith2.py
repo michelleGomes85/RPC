@@ -7,5 +7,7 @@ ARITH_SERVER2 = {
     'PORT': 5002         # Porta do servidor
 }
 
+SERVER_NAME = "server_arith2.txt"
+
 if __name__ == "__main__":
-    Server(ARITH_SERVER2['IP'], ARITH_SERVER2['PORT']).start()
+    Server(ARITH_SERVER2['IP'], ARITH_SERVER2['PORT'], SERVER_NAME).start()

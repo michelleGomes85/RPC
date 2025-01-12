@@ -132,6 +132,9 @@ class Client:
     def check_primes_parallel(self, list_numbers, n_process):
         return self.execute_operation(OPERATIONS['CHECK_PRIMES_PARALLEL'], list_numbers, n_process)
     
+    def valida_CPF(self, cpf):
+        return self.execute_operation(OPERATIONS['VALIDA_CPF'], cpf)
+    
     def close(self):
         """Fecha o socket do cliente."""
         if self.sock:

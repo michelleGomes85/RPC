@@ -7,5 +7,7 @@ UTILITY_SERVER = {
     'PORT': 5003         # Porta do servidor
 }
 
+SERVER_NAME = "server_utility.txt"
+
 if __name__ == "__main__":
-    Server(UTILITY_SERVER['IP'], UTILITY_SERVER['PORT']).start()
+    Server(UTILITY_SERVER['IP'], UTILITY_SERVER['PORT'], SERVER_NAME).start()
