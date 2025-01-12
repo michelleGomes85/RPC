@@ -13,8 +13,8 @@ SERVER_MAP = {
 
 # Configurações do servidor de nomes
 NAME_SERVER = {
-    'IP': '127.0.0.1',  # IP do servidor
-    'PORT': 5000         # Porta do servidor
+    'IP': '127.0.0.1', 
+    'PORT': 5000       
 }
 
 LOG_SERVER_NAME_CLOSED = "\nEncerrando o servidor de nomes..."

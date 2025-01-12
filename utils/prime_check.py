@@ -1,18 +1,22 @@
 import math
+from cache.disk_cache_manager import DiskCacheManager
+from cache.decorators import cached
+
 
 class PrimeChecker:
     
-    def __init__(self, cache_manager):
-        
-        """
-        Inicializa o verificador de números primos com um gerenciador de cache.
+    def __init__(self):
+        pass
 
-        :param cache_manager: Instância do DiskCacheManager.
-        """
-        
-        self.cache_manager = cache_manager
-
+    @cached(cache_manager=DiskCacheManager(cache_file="cache/files/prime_cache.json"))
     def is_prime(self, n):
+
+        """
+        Verifica se um número é primo.
+
+        :param n: Número a ser verificado.
+        :return: True se for primo, False caso contrário.
+        """
         
         if n <= 1:
             return False
@@ -20,23 +24,6 @@ class PrimeChecker:
             return True
         elif n % 2 == 0:
             return False
-        
-        """
-        Verifica se um número é primo, usando o cache para acelerar o processo.
-
-        :param n: Número a ser verificado.
-        :return: True se for primo, False caso contrário.
-        """
-        
-        # Verifica no cache
-        cached_result = self.cache_manager.get(n)
-        if cached_result is not None:
-            return bool(cached_result)
 
         # Calcula a primalidade
-        result = all(n % i != 0 for i in range(3, int(math.sqrt(n)) + 1, 2))
-
-        # Armazena no cache
-        self.cache_manager.insert(n, int(result))
-        
-        return result
+        return all(n % i != 0 for i in range(3, int(math.sqrt(n)) + 1, 2))

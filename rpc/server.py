@@ -14,6 +14,7 @@ from utils.message_handler import MessageHandler
 from utils.prime_check import PrimeChecker
 from cache.cache_manager import CacheManager
 from cache.disk_cache_manager import DiskCacheManager
+from cache.decorators import cached
 
 class Server:
     
@@ -23,9 +24,6 @@ class Server:
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        
-        self.cache_mul = CacheManager() 
-        self.cache_manager = DiskCacheManager()
         
         self.running = True
         
@@ -120,19 +118,10 @@ class Server:
 
     def sub(self, values):
         return values[0] - values[1]
-    
+
+    @cached(cache_manager=DiskCacheManager(cache_file="cache/files/cache_mult.json", cache_limit=3))
     def mul(self, values):                                             
-        
-        key = f"{min(values[0], values[1])}*{max(values[0], values[1])}"
-        cached_result = self.cache_mul.get(key)
-        
-        if cached_result is not None:
-            return cached_result
-       
-        result = values[0] * values[1]
-        self.cache_mul.set(key, result)
-        
-        return result
+        return values[0] * values[1]
 
     def div(self, values):
         return values[0] / values[1]
@@ -143,17 +132,17 @@ class Server:
 
     def check_primes(self, list_numbers):
         
-        prime_checker = PrimeChecker(self.cache_manager)
-
         """Verifica primalidade de números sem o uso de paralelismo"""
+
+        prime_checker = PrimeChecker()
 
         return [prime_checker.is_prime(n) for n in list_numbers]
     
     def check_primes_parallel(self, values):
         
-        prime_checker = PrimeChecker(self.cache_manager)
-        
         """Verifica primalidade de números em paralelo, dividindo entre múltiplos processos."""
+
+        prime_checker = PrimeChecker(self.cache_manager)
         
         list_numbers, n_process = values 
 

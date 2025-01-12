@@ -6,24 +6,6 @@ SERVER_CONFIG = {
     'PORT': 5000         # Porta do servidor
 }
 
-# Configurações servidor (adição e subtração)
-ARITH_SERVER1 = {
-    'IP': '127.0.0.1',  # IP do servidor
-    'PORT': 5001         # Porta do servidor
-}
-
-# Configurações servidor (multiplicação e divisão)
-ARITH_SERVER2 = {
-    'IP': '127.0.0.1',  # IP do servidor
-    'PORT': 5002         # Porta do servidor
-}
-
-# Configurações servidor outros servidores (multiplicação e divisão)
-UTILITY_SERVER = {
-    'IP': '127.0.0.1',  # IP do servidor
-    'PORT': 5003         # Porta do servidor
-}
-
 # Operações suportadas
 OPERATIONS = {
     'SUM': 'SUM',

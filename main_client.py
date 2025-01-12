@@ -60,26 +60,28 @@ def plot_results(results):
 # Função para testar outras operações (sem gerar gráfico)
 def test_operations():
     
-    client = Client()  
+    try:
+        client = Client()  
     
-    print("Soma (10 + 20):", client.sum(11, 20)) 
-    # print("Soma (10 + 20):", client.sum(5, 20)) 
-    # print("Soma (10 + 20):", client.sum(11, 20)) 
+    # print("Soma (11 + 20):", client.sum(11, 20)) 
+    # print("Soma (5 + 20):", client.sum(5, 20)) 
+    # print("Soma (11 + 20):", client.sum(20, 11)) 
+    # print("Soma (5 + 20):", client.sum(5, 20)) 
+    # print("Soma (5 + 20):", client.sum(5, 20)) 
 
-    print("Multiplicação (11 + 20):", client.mul(11, 20)) 
-    # print("Multiplicação (5 + 20):", client.mul(20, 11)) 
-    # print("Multiplicação (11 + 20):", client.mul(11, 20)) 
+    # print("Multiplicação (11 * 20):", client.mul(11, 20)) 
+    # print("Multiplicação (20 * 11):", client.mul(20, 11)) 
+    # print("Multiplicação (10 * 100):", client.mul(10, 100)) 
+    # print("Multiplicação (5 * 4):", client.mul(5, 4)) 
 
-    # print("\n-- Divisão (20 / 10):", client.div(20, 10)) 
-    # print("\n-- Divisão (20 / 5):", client.div(20, 5)) 
-    # # print("Divisão (20 / 10):", client.div(20, 10)) 
-    # print("\n-- Divisão (30 / 10):", client.div(30, 10)) 
-    # # print("Divisão (20 / 10):", client.div(20, 10)) 
-    # print("\n-- Divisão (80 / 20):", client.div(80, 20)) 
-    # print("\n-- Divisão (100 / 20):", client.div(100, 20)) 
-    # print("\n-- Divisão (200 / 20):", client.div(200, 20)) 
-    # # print("Divisão (20 / 10):", client.div(20, 10)) 
-    # # print("Divisão (80 / 20):", client.div(80, 20)) 
+    # print("\n-- Divisão (20 / 10):", client.div(20, 10)) # cache
+    # print("\n-- Divisão (20 / 5):", client.div(20, 5)) #cache
+    # print("Divisão (20 / 10):", client.div(20, 10)) #não chama
+    # print("\n-- Divisão (30 / 10):", client.div(30, 10)) #cache
+    # print("Divisão (20 / 10):", client.div(20, 10)) #não chama
+    # print("\n-- Divisão (80 / 20):", client.div(80, 20)) #cache tira 20/10
+    # print("Divisão (20 / 10):", client.div(20, 10)) #chama tira 20,5
+    # print("\n-- Divisão (100 / 20):", client.div(20, 5)) #chama 
 
     # print("Subtração (15 - 10):", client.sub(15, 10))
     # print("Subtração (15 - 'b'):", client.sub(15, 'b')) 
@@ -93,10 +95,13 @@ def test_operations():
 
     # print("Aguardar 1 segundos:", client.wait_n_seconds(1))
     
-    numbers = list(range(1, 10))
-    print(client.check_primes(numbers))
-    
-    client.close()
+        numbers = list(range(1, 10))
+        print(client.check_primes(numbers))
+
+        client.close()
+    except Exception as e:
+        print(f"\nErro de conexão: {e}")
+
 
 if __name__ == "__main__":
     #results = test_performance()
