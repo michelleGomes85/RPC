@@ -154,11 +154,9 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# Ignora todos os arquivos dentro da pasta certs
-certs/*
-
-# Mas mantém a pasta certs no repositório
-!certs/
+# Ignora os arquivos de criptografia
+server.crt
+server.key
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
