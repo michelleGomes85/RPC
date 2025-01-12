@@ -1,6 +1,7 @@
 import socket
 import json
 import signal
+from threading import Thread
 
 from config.config_server_name import SERVER_MAP, NAME_SERVER, LOG_SERVER_NAME_CLOSED, LOG_SERVER_NAME_START, KEY_OPERATION, ERROR_KEY_OPERATION_MISSING, LOG_REQUEST_RECEIVED, ERROR_UNKNOWN_OPERATION, ERROR, LOG_OPERATION_NOT_FOUND, ERROR_FORMAT_WRONG, ERROR_INTERNAL
 from config.constants import ENCODING, BUFFER_SIZE
@@ -23,9 +24,9 @@ class NameServer:
 
     def start(self):
         
-        signal.signal(signal.SIGINT, self.handle_sigint)
-        
         """Inicia o servidor de nomes para gerenciar endereços dos servidores de operação."""
+
+        signal.signal(signal.SIGINT, self.handle_sigint)
         
         self.udp_sock.bind((self.ip, self.port))
         
@@ -35,7 +36,11 @@ class NameServer:
             while self.running:
                 self.udp_sock.settimeout(1)
                 try:
-                    self.handle_request()
+                    data, addr = self.udp_sock.recvfrom(self.buffer_size)
+
+                    # Cria uma nova thread para processar a requisição
+                    client_thread = Thread(target=self.handle_request, args=(data, addr))
+                    client_thread.start()
                 except socket.timeout:
                     continue
         finally:
@@ -48,12 +53,11 @@ class NameServer:
         print(LOG_SERVER_NAME_CLOSED)
         self.running = False
 
-    def handle_request(self):
+    def handle_request(self, data, addr):
         
         """Trata uma solicitação recebida de um cliente."""
         
         try:
-            data, addr = self.udp_sock.recvfrom(self.buffer_size)
             request = json.loads(data.decode(self.encoding))
 
             if KEY_OPERATION not in request:
@@ -61,18 +65,17 @@ class NameServer:
                 return
 
             operation = request[KEY_OPERATION]
-            print(LOG_REQUEST_RECEIVED.format(addr = addr, operation = operation))
+            print(LOG_REQUEST_RECEIVED.format(addr=addr, operation=operation))
 
             response = self.server_map.get(operation, {})
 
             if not response:
                 response = {ERROR: LOG_OPERATION_NOT_FOUND}
-                print(ERROR_UNKNOWN_OPERATION)
+
+                raise Exception(ERROR_UNKNOWN_OPERATION)
 
             self.send_response(addr, response)
 
-        except socket.timeout:
-            pass
         except json.JSONDecodeError:
             self.send_error(addr, ERROR_FORMAT_WRONG)
         except Exception as e:

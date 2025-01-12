@@ -2,6 +2,7 @@ import socket
 import json
 import random
 import ssl
+import time
 
 from config.constants import ENCODING, BUFFER_SIZE, N_CACHE_MEMORY
 from config.config_server import OPERATIONS, REQUEST_KEYS
@@ -22,25 +23,34 @@ class Client:
     LOG_CONNECT_SERVER_FAILED = "\nNão foi possível conectar ao servidor {ip}:{port}.\n"
     LOG_EXECUTE_OPERATION_FAILED = "\nErro ao executar a operação '{operation}': {e}\n"
     
-    def __init__(self, ip=NAME_SERVER['IP'], port=NAME_SERVER['PORT']):
+    def __init__(self, ip=NAME_SERVER['IP'], port=NAME_SERVER['PORT'], timeout=5, max_retries=3):
+
         self.name_server_ip = ip
         self.name_server_port = port
+        self.timeout = timeout
+        self.max_retries = max_retries
         self.sock = None
 
     def get_server_list(self, operation):
 
         """Obtém a lista de servidores do servidor de nomes."""
         
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_sock:
-                request = {"operation": operation}
-                udp_sock.sendto(json.dumps(request).encode(ENCODING), (self.name_server_ip, self.name_server_port))
-                response, _ = udp_sock.recvfrom(BUFFER_SIZE)
-                server_list = json.loads(response.decode(ENCODING))
-                return server_list
-        except (socket.error, json.JSONDecodeError) as e:
-            raise Exception(self.LOG_ERROR_CONNECT_SERVER_NAME.format(e=e))
-    
+        for attempt in range(self.max_retries):
+
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_sock:
+                    udp_sock.settimeout(self.timeout)
+                    request = {"operation": operation}
+                    udp_sock.sendto(json.dumps(request).encode(ENCODING), (self.name_server_ip, self.name_server_port))
+                    response, _ = udp_sock.recvfrom(BUFFER_SIZE)
+                    server_list = json.loads(response.decode(ENCODING))
+                    return server_list
+            except (socket.timeout, socket.error, json.JSONDecodeError) as e:
+                print(f"Tentativa {attempt + 1} falhou: {e}")
+                if attempt == self.max_retries - 1:
+                    raise Exception(self.LOG_ERROR_CONNECT_SERVER_NAME.format(e=e))
+                time.sleep(1) 
+
     def connect_to_server(self, ip, port):
         
         """Conecta ao servidor de operação via TCP."""
@@ -57,9 +67,9 @@ class Client:
             self.sock.connect((ip, port))
 
             # Imprime o certificado recebido do servidor
-            cert = self.sock.getpeercert()
-            print("Certificado recebido do servidor:")
-            print(json.dumps(cert, indent=4))  # Formata o certificado como JSON para facilitar a leitura
+            # cert = self.sock.getpeercert()
+            # print("Certificado recebido do servidor:")
+            # print(json.dumps(cert, indent=4)) 
 
             return True
         except socket.error as e:
