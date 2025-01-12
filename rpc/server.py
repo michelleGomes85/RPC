@@ -5,11 +5,13 @@ import multiprocessing
 import threading
 import os
 import signal
+import ssl
 
 from multiprocessing import Pool
 
 from config.config_server import OPERATIONS, SERVER_CONFIG, REQUEST_KEYS, THREAD_PROCESS, ERROR_MESSAGE, DIV_ZERO_ERROR, INVALID_OPERATION, ERROR_NUMBER_PROCESS, LOG_SERVER_START, LOG_CONNECTION_ESTABLISHED, LOG_CONNECTION_CLOSED, LOG_CLIENT_ERROR, LOG_SERVER_CLOSED
 
+from config.config_certs import PATH_SERVER_CERTS, PATH_SERVER_KEY
 from utils.message_handler import MessageHandler
 from utils.prime_check import PrimeChecker
 from cache.cache_manager import CacheManager
@@ -25,6 +27,10 @@ class Server:
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        # Configuração do SSL
+        self.context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        self.context.load_cert_chain(certfile=PATH_SERVER_CERTS, keyfile=PATH_SERVER_KEY)
         
         self.running = True
 
@@ -56,14 +62,16 @@ class Server:
                 self.sock.settimeout(1)
                 try:
                     connection, self.address = self.sock.accept()
+                    
+                    # Encapsula o socket com SSL
+                    secure_connection = self.context.wrap_socket(connection, server_side=True)
+                    
+                    print(LOG_CONNECTION_ESTABLISHED.format(address=self.address))
+                    worker = threading.Thread(target=self.handle_client, args=(secure_connection,))
+                    worker.start()
+
                 except socket.timeout:
                     continue  
-                
-                print(LOG_CONNECTION_ESTABLISHED.format(address=self.address))
-                
-                worker = threading.Thread if THREAD_PROCESS else multiprocessing.Process
-                client_handler = worker(target=self.handle_client, args=(connection,))
-                client_handler.start()
         finally:
             self.sock.close() 
             

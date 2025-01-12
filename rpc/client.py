@@ -1,6 +1,7 @@
 import socket
 import json
 import random
+import ssl
 
 from config.constants import ENCODING, BUFFER_SIZE, N_CACHE_MEMORY
 from config.config_server import OPERATIONS, REQUEST_KEYS
@@ -8,6 +9,8 @@ from config.config_server_name import NAME_SERVER
 from utils.message_handler import MessageHandler
 from cache.cache_manager import CacheManager
 from cache.decorators import cached
+
+from config.config_certs import PATH_SERVER_CERTS
 
 class Client:
 
@@ -23,7 +26,7 @@ class Client:
         self.name_server_ip = ip
         self.name_server_port = port
         self.sock = None
-                
+
     def get_server_list(self, operation):
 
         """Obtém a lista de servidores do servidor de nomes."""
@@ -39,12 +42,25 @@ class Client:
             raise Exception(self.LOG_ERROR_CONNECT_SERVER_NAME.format(e=e))
     
     def connect_to_server(self, ip, port):
-
+        
         """Conecta ao servidor de operação via TCP."""
 
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            # Configuração do SSL
+            context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+            context.load_verify_locations(cafile=PATH_SERVER_CERTS)
+
+            # Encapsula o socket com SSL
+            self.sock = context.wrap_socket(self.sock, server_hostname=ip)
             self.sock.connect((ip, port))
+
+            # Imprime o certificado recebido do servidor
+            cert = self.sock.getpeercert()
+            print("Certificado recebido do servidor:")
+            print(json.dumps(cert, indent=4))  # Formata o certificado como JSON para facilitar a leitura
+
             return True
         except socket.error as e:
             raise Exception(self.LOG_ERROR_CONNECT_SERVER.format(ip=ip, port=port, e=e))
