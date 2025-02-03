@@ -9,7 +9,7 @@ SERVER_MAP = {
     "WAIT": [{"IP": "127.0.0.1", "PORT": 5003}],
     "CHECK_PRIMES": [{"IP": "127.0.0.1", "PORT": 5003}],
     "CHECK_PRIMES_PARALLEL": [{"IP": "127.0.0.1", "PORT": 5003}],
-    "VALIDA_CPF": [{"IP": "127.0.0.1", "PORT": 5003}]
+    "VALIDA_CPF": [{"IP": "127.0.0.1", "PORT": 5003}],
 }
 
 # Configurações do servidor de nomes

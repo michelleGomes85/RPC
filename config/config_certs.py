@@ -19,6 +19,8 @@ Organizational Unit Name (eg, section) []: TI
 Common Name (eg, server FQDN or YOUR name) []: localhost
 Email Address []: 
 
+-> Link Colab: https://colab.research.google.com/drive/1JWWSxCNGdbl6erR2xqIBl8gpqgFmg8Kl?usp=sharing
+
 """
 
 PATH_SERVER_CERTS = "certs/server.crt"
