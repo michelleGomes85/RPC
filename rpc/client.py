@@ -30,6 +30,8 @@ class Client:
         self.timeout = timeout
         self.max_retries = max_retries
         self.sock = None
+        self.server_connections = {}  
+        self.current_operation = None 
 
     def get_server_list(self, operation):
 
@@ -102,17 +104,26 @@ class Client:
         """Obtém o servidor da operação e executa."""
 
         try:
-            # Passo 1: Obter a lista de servidores do servidor de nomes
-            server_list = self.get_server_list(operation)
-            if not server_list:
-                raise Exception(self.LOG_NO_SERVER_AVAILABLE.format(operation=operation))
+            # Se a operação é a mesma da última vez, reutiliza o servidor salvo
+            if self.current_operation == operation and operation in self.server_connections:
+                ip, port = self.server_connections[operation]
+                print(f"Reutilizando conexão para {operation} no servidor {ip}:{port}")
+            else:
+                # Passo 1: Obter a lista de servidores do servidor de nomes
+                server_list = self.get_server_list(operation)
+                if not server_list:
+                    raise Exception(self.LOG_NO_SERVER_AVAILABLE.format(operation=operation))
 
-            # Passo 2: Escolher um servidor aleatoriamente
-            selected_server = random.choice(server_list)
-            ip, port = selected_server["IP"], selected_server["PORT"]
+                # Passo 2: Escolher um servidor aleatoriamente
+                selected_server = random.choice(server_list)
+                ip, port = selected_server["IP"], selected_server["PORT"]
             
-            print(f"\nServidor escolhido para operação {ip}:{port}\n")
-            
+                print(f"\nNovo servidor escolhido para operação {operation}: {ip}:{port}\n")
+
+                # Atualiza o dicionário de conexões e a operação atual
+                self.server_connections[operation] = (ip, port)
+                self.current_operation = operation
+
             # Passo 3: Conectar ao servidor escolhido
             if not self.connect_to_server(ip, port):
                 raise Exception(self.LOG_CONNECT_SERVER_FAILED.format(ip=ip, port=port))
@@ -127,7 +138,7 @@ class Client:
             raise Exception(self.LOG_EXECUTE_OPERATION_FAILED.format(operation=operation, e=e))
 
     @cached(cache_manager=CacheManager())
-    def sum(self, value1, value2):
+    def sum_num(self, value1, value2):
 
         """Operação de soma com cache sem limite."""
 
@@ -161,8 +172,19 @@ class Client:
     def valida_CPF(self, cpf):
         return self.execute_operation(OPERATIONS['VALIDA_CPF'], cpf)
     
-    def close(self):
-        """Fecha o socket do cliente."""
+    def close_connection(self):
+
+        """Fecha a conexão atual e reseta o controle de operações."""
+
         if self.sock:
             self.sock.close()
             self.sock = None
+            self.current_operation = None  # Reseta a última operação usada
+            print("Conexão fechada.")
+    
+    def close(self):
+
+        """Fecha todas as conexões abertas e limpa as referências."""
+        
+        self.close_connection()
+        self.server_connections.clear()
