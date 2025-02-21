@@ -1,6 +1,6 @@
- # 🖧 Projeto RPC Distribuído
+# 🖧 Projeto RPC Distribuído
 
-RPC (Remote Procedure Call) é um protocolo que permite a execução de funções remotas como se fossem chamadas locais. Ele possibilita a comunicação entre diferentes processos em redes distribuídas, permitindo que um cliente invoque métodos de um servidor remoto sem precisar lidar diretamente com os detalhes de rede.
+**RPC (Remote Procedure Call)** é um protocolo que permite a execução de funções remotas como se fossem chamadas locais. Ele possibilita a comunicação entre diferentes processos em redes distribuídas, permitindo que um cliente invoque métodos de um servidor remoto sem precisar lidar diretamente com os detalhes de rede.
 
 No contexto deste projeto, foi implementado um sistema RPC distribuído, onde diferentes servidores podem executar funções e um servidor de nomes atua como intermediário para localizar os serviços disponíveis.
 
@@ -17,9 +17,9 @@ O projeto é dividido entre servidores, onde cada servidor pode ser executado em
 
 Este projeto implementa um sistema **RPC (Remote Procedure Call)** distribuído, no qual um cliente pode chamar funções remotamente como se fossem locais. O sistema é composto por três principais componentes:
 
-- Servidor de Nomes (Name Server)
-- Servidores RPC (RPC Servers)
-- Cliente RPC (RPC Client)
+- **Servidor de Nomes (Name Server)**
+- **Servidores RPC (RPC Servers)**
+- **Cliente RPC (RPC Client)**
   
 Cada um desses componentes desempenha um papel fundamental na comunicação distribuída.
 
@@ -34,9 +34,10 @@ O servidor de nomes funciona como um intermediário entre o cliente e os servido
   
 Os servidores RPC são responsáveis por expor funções que podem ser chamadas remotamente. Cada servidor pode rodar em um IP e porta diferente, permitindo distribuir a carga entre vários servidores.
 
-  - Estes servidor são registrados no servidor de nomes, com suas operações.
+  - Estes servidores são registrados no servidor de nomes, com suas operações.
   - O servidor RPC escuta requisições na porta e IP onde foi configurado e responde às chamadas do cliente.
-    
+  - Cada servidor RPC gera um **arquivo de log** para registrar todas as operações realizadas.
+  
 ### **📡 3. Cliente RPC (RPC Client)**
   
 O cliente RPC é responsável por fazer chamadas para os serviços remotos. Ele segue os seguintes passos:
@@ -48,9 +49,40 @@ O cliente RPC é responsável por fazer chamadas para os serviços remotos. Ele 
      
 Esse processo permite que o cliente chame funções remotas sem precisar saber a localização exata do serviço, tornando o sistema dinâmico e flexível.
 
+## 📝 Registro de Logs
+
+Cada servidor RPC gera um arquivo de log contendo informações detalhadas sobre todas as requisições recebidas. Esse log inclui:
+
+- **Data e horário** da requisição
+- **Endereço IP** do cliente que fez a chamada
+- **Nome da operação executada**
+- **Tempo de execução** da requisição (em milissegundos)
+  
+Os logs seguem o formato:
+
+```
+AAAA-MM-DD HH:MM:SS, IP_CLIENTE, OPERAÇÃO, TEMPO_EXECUÇÃO ms
+```
+
+Exemplo de log gerado:
+
+```
+2025-02-03 11:54:16, 127.0.0.1, SUB, 0.365155 ms
+```
+
+Esses registros permitem monitorar o histórico de requisições, ajudando na depuração e otimização do sistema.
+
+### 📂 Extração de IPs únicos
+
+Até mesmo existe um **script shell** de exemplo para extrair os IPs únicos  que fizeram requisições ao servidor, do arquivo de log gerado, está na pasta abaixo:
+
+```
+log/shellScript.ch
+```
+
 ## 🔒 Configuração de SSL
 
-Para adicionar segurança às comunicações RPC, utilizamos **SSL/TLS** para criptografar os dados. Para isso, precisamos gerar um certificado e uma chave privada.
+Para adicionar segurança às comunicações RPC, utilizamos **SSL/TLS** para criptografar os dados. Para isso, precisamos gerar um certificado e uma chave privada:
 
 ### Atualizar o arquivo `openssl.cnf`
 Antes de gerar as chaves de acesso, é necessário configurar o arquivo `openssl.cnf` com as informações adequadas, na pasta `certs/`
@@ -83,8 +115,7 @@ PATH_SERVER_CERTS = "certs/server.crt"
 PATH_SERVER_KEY = "certs/server.key"
 ```
 
-
 ## 🎯 Conclusão
 
-Este projeto demonstra o funcionamento de um sistema RPC distribuído com múltiplos servidores e um intermediário para gerenciar as chamadas. A adição de SSL garante uma comunicação segura entre os componentes.
+Este projeto demonstra o funcionamento de um sistema RPC distribuído com múltiplos servidores e um intermediário para gerenciar as chamadas. A adição de SSL garante uma comunicação segura entre os componentes. Além disso, os arquivos de log permitem um monitoramento eficiente das operações realizadas pelos servidores RPC.
 
